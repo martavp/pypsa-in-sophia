@@ -1,0 +1,1 @@
+snakemake --rerun-incomplete -call all --latency-wait 100 --cluster-generic-submit-cmd "sbatch --parsable -p workq -n 1 --cpus-per-task {threads} --mem {resources.mem_mb}" "$@"

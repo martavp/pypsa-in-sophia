@@ -1,2 +1,205 @@
-# pypsa-in-sophia
-This repository contains instructions to run PyPSA-Eur in the DTU Sophia cluster
+# Running PyPSA-Eur-Sec in SOPHIA
+
+This repository includes instructions and tricks to run the [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) model on the cluster computer [SOPHIA](https://dtu-sophia.github.io/docs/).
+
+Its main purpose is to help master and PhD students install the packages and run simulations with [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). 
+
+If you encounter a problem (and hopefully also a solution), please, pull request changes to this README file with the solution so that other students can also benefit.
+
+The content of this document is structured as follows:<br>
+1 [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  <br>
+2 [Getting on to the cluster](#getting-on-to-the-cluster)  <br>
+3 [Setting up the cluster](#setting-up-the-cluster)  <br>
+4 [Running simulations](#running-simulations)<br>
+5 [Typical errors](#typical-errors)<br>
+6 [Extra stuff that will make your life much easier](#extra-stuff-that-will-make-your-life-easier)<br>
+
+## General information about *PyPSA-Eur* 
+
+[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) is a model of the European power sector including sector coupling. The model is built with the open-source python module [PyPSA](https://pypsa.readthedocs.io/en/latest/). [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) also uses the Github repository [Technology-data](https://github.com/PyPSA/technology-data) to get data on the energy system. Technology-Data is a repository including costs, efficiencies, lifetimes, etc. for different technologies.
+
+[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system to run simulations. By using Snakemake simulations, python files can be run with a Snakemake command without having to open them. Snakemake automatically runs all the needed python scripts for a given simulation run. The simulations are configured in the `config.yaml` file. The Snakemake workflow is structured in the `SNAKEFILE`. [Step 10](#10-configure-snakemake) shows how to run the simulation with Snakemake. 
+
+There is a [distribution list](https://groups.google.com/g/pypsa) where PyPSA-related problems (and solutions) are discussed. You can ask questions there if you have any troubles with the model.
+
+There is also documentation for [PyPSA](https://pypsa.readthedocs.io/en/latest/) and [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). This repository does not substitute any of the previous information and it only focuses on issues related to running PyPSA-Eur-Sec in SOPHIA.
+
+NOTE: In order to set up anaconda, python, and PyPSA, [these instructions](https://github.com/martavp/RES_project/blob/master/Instructions_RES_project.pdf) and the [tutorial for the course project in RES](https://github.com/martavp/RES_project/blob/master/RES_project.ipynb) could be useful. 
+
+This [video](https://www.youtube.com/watch?v=ty47YU1_eeQ) provides a nice introduction to PyPSA-Eur. 
+
+
+## Getting on to the cluster
+
+#### 1. Get access to SOPHIA
+To use the [SOPHIA cluster](https://dtu-sophia.github.io/docs/), first you need to get a user. You need to ask your supervisor to send [an email](https://dtu-sophia.github.io/docs/account/) requesting access for you.
+
+#### 2. VPN
+To connect to SOPHIA you need to be connected to the university network via the VPN connection.
+
+#### 3. Connect with ssh
+ You can connect to the cluster through the terminal, e.g.
+> ssh mvipe@sophia.dtu.dk
+
+The main way of interacting with the cluster will be through a terminal where you have run the ssh command to connect to SOPHIA. An alternative way of interacting with the cluster is by using the program VSCode as shown in [step 22](#vs-code)
+
+#### 4. Useful commands
+Some useful commands to use in the cluster are described in the [Sophia description](https://dtu-sophia.github.io/docs/scheduler/).
+
+#### 5. Moving files to/from the cluster
+If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux. This makes moving files on the cluster much easier as you would otherwise have to use commands in the terminal to move files. 
+
+
+## Setting up the cluster
+
+**The following commands must be run on the cluster. Log in to the cluster as shown in [step 2](#2-connect-with-ssh)**
+
+
+#### 1. Installing anaconda/miniconda
+You will need to have installed [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) in your home directory at the cluster. Follow the guide at [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
+Miniconda is a lighter version which works fine.
+
+#### 2 Installing PyPSA-Eur
+Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. I would make it in the home directory and call it `projects`
+
+> mkdir projects
+
+Now go into that folder with
+
+> cd projects
+
+The first step of installing PyPSA-Eur-Sec is installing the PyPSA-Eur model. Follow the instruction given [here](https://pypsa-eur.readthedocs.io/en/latest/installation.html) carefully. Installation may take a while. 
+
+#### 3. Installing the anaconda environment
+You will need to have an conda environment with all the necessary packages. You should have created one when installing [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). Otherwise, see how to do it [here](#creating-anaconda-environment).
+
+*** Unable to actívate environment 
+Activate the environment by typing
+
+> .../pypsa-eur$ conda activate pypsa-eur
+
+Every time you log in to the cluster you must activate the environment again. The active environment will be shown in parenthesis in your terminal. 
+
+> (pypsa-eur) [marta@fe1 ~]$
+
+#### 4. Install gurobi 
+Install the optimization software [Gurobi](https://www.gurobi.com) in the environment by running the command
+> conda install -c gurobi gurobi
+
+
+#### 5 Configure SNAKEMAKE (for snakemake versions >8)
+
+In the folder '/SOPHIA_cluster' of this repository, there are two additional files needed to use snakemake in SOPHIA. 
+
+First, you might want to clone this repository:
+
+> git clone https://github.com/martavp/pypsa-in-sophia.git
+
+Copy the files 'cluster.yaml' and 'snakemake_cluster' to the directory '.../pypsa-eur/' in your folders in the cluster. 
+
+Then, to run your simulations using Snakemake, you only need to write the following instruction in the command line (jobs identify the number of jobs that you want to parallelize if you send more than one job simultaneously). 
+
+> ./snakemake_cluster --jobs 5
+
+
+#### 6. Permission
+You possibly need to give execution permissions to the snakemake_cluster script. You can do it by the following command:
+
+> chmod u+x snakemake_cluster
+
+#### 7. Log files
+Create a directory 'logs/cluster", as indicated in the file 'cluster.yaml'. This is where the logs and error files will be saved. Make sure that a folder 'logs/cluster' also exists in 'pypsa-eur/logs/cluster'.
+
+
+#### 8. Setting up Gurobi in the cluster  
+
+On SOPHIA-cluster, Gurobi needs to be pointed in the right direction as to where to look for packages and licenses. The first step is to add the following lines to the end of the file '.bashrc' located in /home/USER, as indicated in the [Gurobi guide](https://www.gurobi.com/documentation/6.5/quickstart_linux/software_installation_guid.html):
+
+> export GUROBI_HOME="/home/com/meenergy/gurobi1101/linux64"
+
+> export PATH="${PATH}:${GUROBI_HOME}/bin"
+
+> export LD_LIBRARY_PATH="${GUROBI_HOME}/lib"
+
+Additionally, the following line should be added at the end of the file '.bashrc':
+
+> export GRB_LICENSE_FILE="$GUROBI_HOME/gurobi.lic"
+
+This points Gurobi to the cluster license. Note that an academic license used locally on a computer is unsuitable for use on the cluster, and will result in a failed simulation.
+
+#### 10. Using scratch memory for the temporary directory
+
+THIS STEP IS VERY IMPORTANT!! The entire SOPHIA cluster is slowed down if you do not include this. 
+
+When running simulations the Gurobi solver is constantly reading and writing temporary files. To avoid slowing down the entire SOPHIA cluster, it is very important that scratch memory is used for the temporary directory. Read more about scratch memory in the [labbook](https://labbook.au.dk/display/COM/3.+Convenient+commands).
+
+In the file `pypsa-eur-sec/config.yaml` (if that file doesn't exist go to `pypsa-eur-sec/config.default.yaml`) change the setting `tmpdir` under solving to '/tmp'. Make sure the setting is not commented out. It should look like this: 
+
+> solving: 
+>   tmpdir: '/tmp'
+
+## Running simulations
+
+Congratulations, if you have made it this far you are now ready to run some simulations. 
+
+Start by making a `config.yaml` file by going into the PyPSA-Eur-Sec folder and copying the default config file 
+
+> projects/pypsa-eur$ cp config.default.yaml config.yaml
+
+The `config.yaml` file is where all settings regarding the simulation are done. Edit the settings file with a text editor. 
+
+MAKE SURE THAT YOUR `tmpdir` setting is specified as in [step 10](#10-using-scratch-memory-for-temporary-directory).
+
+When you have made your settings you are now ready to run the simulations using SNAKEMAKE. 
+All simulations must be run from the PyPSA-Eur folder. To run the full simulations type the command: 
+
+> ./snakemake_cluster --jobs 5
+
+The `--jobs 5` indicate that 5 jobs can be run in parallel. 
+
+You can also run only parts of the simulation by specifying what rule to run 
+
+> ./snakemake_cluster --jobs 5 prepare_sector_networks
+
+This command would only run all scripts required to `prepare_sector_networks` and the `prepare_sector_networks` rule itself. You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
+
+
+## Typical Errors
+Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
+
+#### VS Code 
+
+***VS Code must be installed on your local computer, not on the cluster***
+
+[Visual Studio Code](https://code.visualstudio.com/) is a handy tool when working on the cluster. It allows you to have your file explorer, [python editor](https://code.visualstudio.com/docs/python/python-tutorial), and terminal in one window. Install the [Remote - SSH extension](https://code.visualstudio.com/docs/remote/ssh) to connect with PRIME.
+
+Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
+
+If you experience issues with connecting VScode to prime, try setting the option "Remote.SSH: Lockfiles in Tmp" to true (check the box). 
+
+To commit from your prime repository to your GitHub, go to the *source control* and give your commit a name and press ctrl + enter. If you want the commit to be pushed automatically, after having committed, go to settings --> Remote [SSH: prime.eng.au.dk] --> Git --> Post Commit Command --> change "none" to "push"
+
+#### Avoid entering your password when connecting to PRIME
+
+This is not secure and not officially recommended! Using SSH keys is a good idea but best to set a strong password for them. 
+
+On your local computer, generate an ssh key by running:
+
+> (Local path) > ssh-keygen
+
+Press _Enter_ for the default key name. Then _Enter_ for no password, and then _Enter_ again to confirm. A password key is created under *Local path* in the file _"id_rsa.pub"_. Copy the key to the cluster by running the following command:
+
+> ssh-copy-id -i ~/.ssh/id_rsa.pub prime.eng.au.dk
+
+Enter password when prompted. 
+ 
+#### Extending run-time for long jobs
+
+If you need to run jobs that take a longer time to finish than the default 4 days, you can update the 'snakemake_cluster' by adding your preferred time as shown in the example below for 10 dyas:
+
+snakemake .... "sbatch ... --time=240:00:00" "$@"
+
+#### SNAKEMAKE Example
+For the ones who have just started using the PRIME cluster with only one rule in the Snakefile, but want to run in parallel with e.g. a range of different inputs, I have added a simple example of how this can be done in the folder _'cluster_test'_. You can modify the _python_script_ and the Snakefile to match it to your application. 
+
+
