@@ -1,58 +1,57 @@
-# Running PyPSA-Eur-Sec in SOPHIA
+# Running PyPSA-Eur in SOPHIA
 
-This repository includes instructions and tricks to run the [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) model on the cluster computer [SOPHIA](https://dtu-sophia.github.io/docs/).
+This repository includes instructions and tricks to run the [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) model on the [SOPHIA HPC Cluster](https://dtu-sophia.github.io/docs/).
 
-Its main purpose is to help master and PhD students install the packages and run simulations with [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). 
+Its main purpose is to help MSc and PhD students install the packages and run simulations with [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). 
 
 If you encounter a problem (and hopefully also a solution), please, pull request changes to this README file with the solution so that other students can also benefit.
 
 The content of this document is structured as follows:<br>
-1 [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  <br>
-2 [Getting on to the cluster](#getting-on-to-the-cluster)  <br>
-3 [Setting up the cluster](#setting-up-the-cluster)  <br>
-4 [Running simulations](#running-simulations)<br>
-5 [Typical errors](#typical-errors)<br>
-6 [Extra stuff that will make your life much easier](#extra-stuff-that-will-make-your-life-easier)<br>
+A [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  <br>
+B [Getting on to the cluster](#getting-on-to-the-cluster)  <br>
+C [Setting up the cluster](#setting-up-the-cluster)  <br>
+D [Running simulations](#running-simulations)<br>
+E [Typical errors](#typical-errors and options to make your life easier)<br>
 
-## General information about *PyPSA-Eur* 
+## A. General information about PyPSA-Eur
 
-[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) is a model of the European power sector including sector coupling. The model is built with the open-source python module [PyPSA](https://pypsa.readthedocs.io/en/latest/). [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) also uses the Github repository [Technology-data](https://github.com/PyPSA/technology-data) to get data on the energy system. Technology-Data is a repository including costs, efficiencies, lifetimes, etc. for different technologies.
+[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) is a model of the European power sector including sector coupling. The model is built with the open-source python module [PyPSA](https://pypsa.readthedocs.io/en/latest/). [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) also uses the Github repository [technology-data](https://github.com/PyPSA/technology-data) to get data on the energy system. Technology-data is a repository including costs, efficiencies, lifetimes, etc. for different technologies.
 
-[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system to run simulations. By using Snakemake simulations, python files can be run with a Snakemake command without having to open them. Snakemake automatically runs all the needed python scripts for a given simulation run. The simulations are configured in the `config.yaml` file. The Snakemake workflow is structured in the `SNAKEFILE`. [Step 10](#10-configure-snakemake) shows how to run the simulation with Snakemake. 
+[PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/) uses the [Snakemake](https://snakemake.readthedocs.io/en/stable/) workflow management system to run simulations. By using Snakemake simulations, python files can be run with a Snakemake command without having to open them. Snakemake automatically runs all the needed python scripts for a given simulation run. The simulations are configured in the `config.yaml` file. The Snakemake workflow is structured in the `SNAKEFILE`.
 
-There is a [distribution list](https://groups.google.com/g/pypsa) where PyPSA-related problems (and solutions) are discussed. You can ask questions there if you have any troubles with the model.
+There is a [PyPSA mailing list](https://groups.google.com/g/pypsa) where PyPSA-related problems (and solutions) are discussed. You can ask questions there if you have any troubles with the model.
 
 There is also documentation for [PyPSA](https://pypsa.readthedocs.io/en/latest/) and [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). This repository does not substitute any of the previous information and it only focuses on issues related to running PyPSA-Eur-Sec in SOPHIA.
 
-NOTE: In order to set up anaconda, python, and PyPSA, [these instructions](https://github.com/martavp/RES_project/blob/master/Instructions_RES_project.pdf) and the [tutorial for the course project in RES](https://github.com/martavp/RES_project/blob/master/RES_project.ipynb) could be useful. 
+NOTE: In order to set up anaconda, python, and PyPSA, [these instructions](https://github.com/martavp/MESM_project/blob/master/Instructions_MESM_project.pdf) and the [tutorial for the course project in the MESM course](https://github.com/martavp/MESM_project/blob/master/MESM_project.ipynb) could be useful. 
 
 This [video](https://www.youtube.com/watch?v=ty47YU1_eeQ) provides a nice introduction to PyPSA-Eur. 
 
 
-## Getting on to the cluster
+## B. Getting on to the cluster
 
 #### 1. Get access to SOPHIA
 To use the [SOPHIA cluster](https://dtu-sophia.github.io/docs/), first you need to get a user. You need to ask your supervisor to send [an email](https://dtu-sophia.github.io/docs/account/) requesting access for you.
 
 #### 2. VPN
-To connect to SOPHIA you need to be connected to the university network via the VPN connection.
+To connect to SOPHIA you need to be connected to the university network via the [VPN connection](https://www.inside.dtu.dk/en/medarbejder/it-og-telefoni/it-systemer-og-retningslinjer/it-vejledninger-og-retningslinjer/remote/vpn-cisco-anyconnect).
 
 #### 3. Connect with ssh
  You can connect to the cluster through the terminal, e.g.
-> ssh mvipe@sophia.dtu.dk
+> ssh user@sophia.dtu.dk
 
-The main way of interacting with the cluster will be through a terminal where you have run the ssh command to connect to SOPHIA. An alternative way of interacting with the cluster is by using the program VSCode as shown in [step 22](#vs-code)
+The main way of interacting with the cluster will be through a terminal where you have run the ssh command to connect to SOPHIA. An alternative way of interacting with the cluster is by using the program VSCode as shown below. 
 
 #### 4. Useful commands
-Some useful commands to use in the cluster are described in the [Sophia description](https://dtu-sophia.github.io/docs/scheduler/).
+Some useful commands to use in the cluster are described in the [Sophia documentation](https://dtu-sophia.github.io/docs/scheduler/).
 
 #### 5. Moving files to/from the cluster
 If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux. This makes moving files on the cluster much easier as you would otherwise have to use commands in the terminal to move files. 
 
 
-## Setting up the cluster
+## C. Setting up the cluster
 
-**The following commands must be run on the cluster. Log in to the cluster as shown in [step 2](#2-connect-with-ssh)**
+**The following commands must be run on the cluster. Log in to the cluster as shown in [step 3](#2-connect-with-ssh)**
 
 
 #### 1. Installing anaconda/miniconda
@@ -71,31 +70,29 @@ Now go into that folder with
 The first step of installing PyPSA-Eur-Sec is installing the PyPSA-Eur model. Follow the instruction given [here](https://pypsa-eur.readthedocs.io/en/latest/installation.html) carefully. Installation may take a while. 
 
 #### 3. Installing the anaconda environment
-You will need to have an conda environment with all the necessary packages. You should have created one when installing [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). Otherwise, see how to do it [here](#creating-anaconda-environment).
+You will need to have an conda environment with all the necessary packages. You should have created one when installing [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). 
 
-*** Unable to actívate environment 
 Activate the environment by typing
 
 > .../pypsa-eur$ conda activate pypsa-eur
 
 Every time you log in to the cluster you must activate the environment again. The active environment will be shown in parenthesis in your terminal. 
 
-> (pypsa-eur) [marta@fe1 ~]$
+> (pypsa-eur) [user@sophia ~]$
 
 #### 4. Install gurobi 
 Install the optimization software [Gurobi](https://www.gurobi.com) in the environment by running the command
 > conda install -c gurobi gurobi
 
+#### 5 Configure SNAKEMAKE 
 
-#### 5 Configure SNAKEMAKE (for snakemake versions >8)
-
-In the folder '/SOPHIA_cluster' of this repository, there are two additional files needed to use snakemake in SOPHIA. 
+In the folder '/SOPHIA_cluster' of this repository, there is one additional file needed to use snakemake in SOPHIA. 
 
 First, you might want to clone this repository:
 
 > git clone https://github.com/martavp/pypsa-in-sophia.git
 
-Copy the files 'cluster.yaml' and 'snakemake_cluster' to the directory '.../pypsa-eur/' in your folders in the cluster. 
+Copy the file 'snakemake_cluster' to the directory '.../pypsa-eur/' in your folders in the cluster. 
 
 Then, to run your simulations using Snakemake, you only need to write the following instruction in the command line (jobs identify the number of jobs that you want to parallelize if you send more than one job simultaneously). 
 
@@ -107,15 +104,11 @@ You possibly need to give execution permissions to the snakemake_cluster script.
 
 > chmod u+x snakemake_cluster
 
-#### 7. Log files
-Create a directory 'logs/cluster", as indicated in the file 'cluster.yaml'. This is where the logs and error files will be saved. Make sure that a folder 'logs/cluster' also exists in 'pypsa-eur/logs/cluster'.
-
-
 #### 8. Setting up Gurobi in the cluster  
 
 On SOPHIA-cluster, Gurobi needs to be pointed in the right direction as to where to look for packages and licenses. The first step is to add the following lines to the end of the file '.bashrc' located in /home/USER, as indicated in the [Gurobi guide](https://www.gurobi.com/documentation/6.5/quickstart_linux/software_installation_guid.html):
 
-> export GUROBI_HOME="/home/com/meenergy/gurobi1101/linux64"
+> export GUROBI_HOME="TODO:add_path_to_gurobi_in_Sophia"
 
 > export PATH="${PATH}:${GUROBI_HOME}/bin"
 
@@ -131,18 +124,18 @@ This points Gurobi to the cluster license. Note that an academic license used lo
 
 THIS STEP IS VERY IMPORTANT!! The entire SOPHIA cluster is slowed down if you do not include this. 
 
-When running simulations the Gurobi solver is constantly reading and writing temporary files. To avoid slowing down the entire SOPHIA cluster, it is very important that scratch memory is used for the temporary directory. Read more about scratch memory in the [labbook](https://labbook.au.dk/display/COM/3.+Convenient+commands).
+When running simulations the Gurobi solver is constantly reading and writing temporary files. To avoid slowing down the entire SOPHIA cluster, it is very important that temporary storage is used. Read more about [temporary storage in SOPHIA](https://dtu-sophia.github.io/docs/scratch/).
 
 In the file `pypsa-eur-sec/config.yaml` (if that file doesn't exist go to `pypsa-eur-sec/config.default.yaml`) change the setting `tmpdir` under solving to '/tmp'. Make sure the setting is not commented out. It should look like this: 
 
 > solving: 
 >   tmpdir: '/tmp'
 
-## Running simulations
+## D. Running simulations
 
 Congratulations, if you have made it this far you are now ready to run some simulations. 
 
-Start by making a `config.yaml` file by going into the PyPSA-Eur-Sec folder and copying the default config file 
+Start by making a `config.yaml` file by going into the PyPSA-Eur folder and copying the default config file 
 
 > projects/pypsa-eur$ cp config.default.yaml config.yaml
 
@@ -164,7 +157,7 @@ You can also run only parts of the simulation by specifying what rule to run
 This command would only run all scripts required to `prepare_sector_networks` and the `prepare_sector_networks` rule itself. You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
 
 
-## Typical Errors
+## E. Typical Errors and options to make your life easier
 Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
 
 #### VS Code 
