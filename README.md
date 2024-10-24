@@ -11,7 +11,7 @@ A [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  <
 B [Getting on to the cluster](#getting-on-to-the-cluster)  <br>
 C [Setting up the cluster](#setting-up-the-cluster)  <br>
 D [Running simulations](#running-simulations)<br>
-E [Typical errors](#typical-errors and options to make your life easier)<br>
+E [Typical errors](#typical-errors-and-options-to-make-your-life-easier)<br>
 
 ## A. General information about PyPSA-Eur
 
@@ -46,12 +46,12 @@ The main way of interacting with the cluster will be through a terminal where yo
 Some useful commands to use in the cluster are described in the [Sophia documentation](https://dtu-sophia.github.io/docs/scheduler/).
 
 #### 5. Moving files to/from the cluster
-If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux. This makes moving files on the cluster much easier as you would otherwise have to use commands in the terminal to move files. 
+If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux.
 
 
 ## C. Setting up the cluster
 
-**The following commands must be run on the cluster. Log in to the cluster as shown in [step 3](#2-connect-with-ssh)**
+**The following commands must be run on the cluster.**
 
 
 #### 1. Installing anaconda/miniconda
@@ -67,7 +67,7 @@ Now go into that folder with
 
 > cd projects
 
-The first step of installing PyPSA-Eur-Sec is installing the PyPSA-Eur model. Follow the instruction given [here](https://pypsa-eur.readthedocs.io/en/latest/installation.html) carefully. Installation may take a while. 
+Follow the instruction given [here](https://pypsa-eur.readthedocs.io/en/latest/installation.html) carefully. Installation may take a while. 
 
 #### 3. Installing the anaconda environment
 You will need to have an conda environment with all the necessary packages. You should have created one when installing [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). 
@@ -78,13 +78,19 @@ Activate the environment by typing
 
 Every time you log in to the cluster you must activate the environment again. The active environment will be shown in parenthesis in your terminal. 
 
-> (pypsa-eur) [user@sophia ~]$
+> (pypsa-eur) [user@sophia1 ~]$
 
 #### 4. Install gurobi 
 Install the optimization software [Gurobi](https://www.gurobi.com) in the environment by running the command
 > conda install -c gurobi gurobi
 
-#### 5 Configure SNAKEMAKE 
+### 5. Setting up the gurobi license
+
+The license is managed through a [token server](https://support.gurobi.com/hc/en-us/articles/13264425253265-How-do-I-create-a-token-server-client-license) on the head node. You need to create a file 'gurobi.lic' save it in your home directory in the cluster and write the following text in that file.
+
+> TOKENSERVER=localhost
+
+#### 7. Configure SNAKEMAKE 
 
 In the folder '/SOPHIA_cluster' of this repository, there is one additional file needed to use snakemake in SOPHIA. 
 
@@ -99,30 +105,15 @@ Then, to run your simulations using Snakemake, you only need to write the follow
 > ./snakemake_cluster --jobs 5
 
 
-#### 6. Permission
+#### 8. Permission
 You possibly need to give execution permissions to the snakemake_cluster script. You can do it by the following command:
 
 > chmod u+x snakemake_cluster
 
-#### 8. Setting up Gurobi in the cluster  
 
-On SOPHIA-cluster, Gurobi needs to be pointed in the right direction as to where to look for packages and licenses. The first step is to add the following lines to the end of the file '.bashrc' located in /home/USER, as indicated in the [Gurobi guide](https://www.gurobi.com/documentation/6.5/quickstart_linux/software_installation_guid.html):
+#### 9. Using scratch memory for the temporary directory
 
-> export GUROBI_HOME="TODO:add_path_to_gurobi_in_Sophia"
-
-> export PATH="${PATH}:${GUROBI_HOME}/bin"
-
-> export LD_LIBRARY_PATH="${GUROBI_HOME}/lib"
-
-Additionally, the following line should be added at the end of the file '.bashrc':
-
-> export GRB_LICENSE_FILE="$GUROBI_HOME/gurobi.lic"
-
-This points Gurobi to the cluster license. Note that an academic license used locally on a computer is unsuitable for use on the cluster, and will result in a failed simulation.
-
-#### 10. Using scratch memory for the temporary directory
-
-THIS STEP IS VERY IMPORTANT!! The entire SOPHIA cluster is slowed down if you do not include this. 
+THIS STEP IS VERY IMPORTANT!! The entire SOPHIA cluster could be slowed down if you do not include this. 
 
 When running simulations the Gurobi solver is constantly reading and writing temporary files. To avoid slowing down the entire SOPHIA cluster, it is very important that temporary storage is used. Read more about [temporary storage in SOPHIA](https://dtu-sophia.github.io/docs/scratch/).
 
@@ -141,7 +132,7 @@ Start by making a `config.yaml` file by going into the PyPSA-Eur folder and copy
 
 The `config.yaml` file is where all settings regarding the simulation are done. Edit the settings file with a text editor. 
 
-MAKE SURE THAT YOUR `tmpdir` setting is specified as in [step 10](#10-using-scratch-memory-for-temporary-directory).
+MAKE SURE THAT YOUR `tmpdir` setting is specified as in [the previous step](#10-using-scratch-memory-for-temporary-directory).
 
 When you have made your settings you are now ready to run the simulations using SNAKEMAKE. 
 All simulations must be run from the PyPSA-Eur folder. To run the full simulations type the command: 
@@ -154,15 +145,18 @@ You can also run only parts of the simulation by specifying what rule to run
 
 > ./snakemake_cluster --jobs 5 prepare_sector_networks
 
-This command would only run all scripts required to `prepare_sector_networks` and the `prepare_sector_networks` rule itself. You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
+You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
 
 
 ## E. Typical Errors and options to make your life easier
+
 Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
+
+This section is copypasted from [pypsa-in-prime](https://github.com/martavp/pypsa-in-prime) and not updated yet.
 
 #### VS Code 
 
-***VS Code must be installed on your local computer, not on the cluster***
+VS Code must be installed on your local computer, not on the cluster
 
 [Visual Studio Code](https://code.visualstudio.com/) is a handy tool when working on the cluster. It allows you to have your file explorer, [python editor](https://code.visualstudio.com/docs/python/python-tutorial), and terminal in one window. Install the [Remote - SSH extension](https://code.visualstudio.com/docs/remote/ssh) to connect with PRIME.
 
