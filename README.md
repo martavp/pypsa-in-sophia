@@ -54,9 +54,9 @@ If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be u
 **The following commands must be run on the cluster.**
 
 
-#### 1. Installing anaconda/miniconda
-You will need to have installed [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) in your home directory at the cluster. Follow the guide at [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
-Miniconda is a lighter version which works fine (see below in connection with VS Code).
+#### 1. Installing mamba
+Install [mamba](https://mamba.readthedocs.io/en/latest/) in your home directory at the cluster. 
+Mamba is a lighter version of [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) which works fine (see below in connection with VS Code).
 
 #### 2 Installing PyPSA-Eur
 Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. I would make it in the home directory and call it `projects`
