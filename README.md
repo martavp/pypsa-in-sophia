@@ -56,7 +56,7 @@ If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be u
 
 #### 1. Installing anaconda/miniconda
 You will need to have installed [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) in your home directory at the cluster. Follow the guide at [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html).
-Miniconda is a lighter version which works fine.
+Miniconda is a lighter version which works fine (see below in connection with VS Code).
 
 #### 2 Installing PyPSA-Eur
 Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. I would make it in the home directory and call it `projects`
@@ -86,7 +86,7 @@ Install the optimization software [Gurobi](https://www.gurobi.com) in the enviro
 
 ### 5. Setting up the gurobi license
 
-The license is managed through a [token server](https://support.gurobi.com/hc/en-us/articles/13264425253265-How-do-I-create-a-token-server-client-license) on the head node. You need to create a file 'gurobi.lic' save it in your home directory in the cluster and write the following text in that file.
+The license is managed through a [token server](https://support.gurobi.com/hc/en-us/articles/13264425253265-How-do-I-create-a-token-server-client-license) on the head node. You need to create a file 'gurobi.lic' save it in your home directory in the cluster and write the following text in that file. 
 
 > TOKENSERVER=localhost
 
@@ -156,15 +156,18 @@ This section is copypasted from [pypsa-in-prime](https://github.com/martavp/pyps
 
 #### VS Code 
 
-VS Code must be installed on your local computer, not on the cluster
+VS Code must be installed on your local computer, not on the cluster.
 
-[Visual Studio Code](https://code.visualstudio.com/) is a handy tool when working on the cluster. It allows you to have your file explorer, [python editor](https://code.visualstudio.com/docs/python/python-tutorial), and terminal in one window. Install the [Remote - SSH extension](https://code.visualstudio.com/docs/remote/ssh) to connect with PRIME.
+[Visual Studio Code](https://code.visualstudio.com/) is a handy tool when working on the cluster. It allows you to have your file explorer, [python editor](https://code.visualstudio.com/docs/python/python-tutorial), and terminal in one window. Install the [Remote - SSH extension](https://code.visualstudio.com/docs/remote/ssh) to connect with SOPHIA.
+
+Edit 20/10/2024 by Aleks: Added a set-up for VS Code and Miniconda, including common issues with the license (on the head node, logging in etc). With VS Code, you will always work with an interactive virtual node which will change some of the above steps. See below.
 
 Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
 
 If you experience issues with connecting VScode to prime, try setting the option "Remote.SSH: Lockfiles in Tmp" to true (check the box). 
 
 To commit from your prime repository to your GitHub, go to the *source control* and give your commit a name and press ctrl + enter. If you want the commit to be pushed automatically, after having committed, go to settings --> Remote [SSH: prime.eng.au.dk] --> Git --> Post Commit Command --> change "none" to "push"
+
 
 #### Avoid entering your password when connecting to PRIME
 
@@ -188,5 +191,82 @@ snakemake .... "sbatch ... --time=240:00:00" "$@"
 
 #### SNAKEMAKE Example
 For the ones who have just started using the PRIME cluster with only one rule in the Snakefile, but want to run in parallel with e.g. a range of different inputs, I have added a simple example of how this can be done in the folder _'cluster_test'_. You can modify the _python_script_ and the Snakefile to match it to your application. 
+
+#### Set-up for VS Code with Miniconda
+*For the first set-up*:
+1. Follow the steps as above: get a user account, possibly use a VPN and ssh into SOPHIA (ideally generate an ssh-key to avoid retyping your password; [see here](https://docs-devel.hpc.ait.dtu.dk/TweakSSH/#key-based-authentication)), generate a projects folder in "/work/users/<username>". [Avoid](https://dtu-sophia.github.io/docs/permanent/#ceph-file-system) using the $HOME directory for anything non-permanent. It makes sense to create an environmental variable $WORK via ```export WORK=/work/users/<username>``` in ~/.bashrc.
+2. Add the following to the local ssh config file:
+```# !!! Linux/macOS
+Host hpc
+ ControlMaster auto
+ ControlPath ~/.ssh/master-%r@%h:%p
+ HostName sophia.dtu.dk
+ User $USER
+Host hpcx
+ ProxyCommand ssh hpc "nc \$(/usr/bin/squeue -u $USER --name=tunnel --
+states=R -h -O NodeList,Comment)"
+ StrictHostKeyChecking no
+ User $USER
+Every time you connect / start your day
+# !!! Windows
+Host hpc
+ HostName sophia.dtu.dk
+ User $USER
+Host sn*
+ HostName %h
+ ProxyJump hpc
+ User $USER
+```
+3.  (Only Linux/macOS) On the cluster, add the following sbatch script to your home
+directory (~), modify the SLURM directives as needed and name it e.g. tunnel.sh :
+```#!/bin/bash
+#SBATCH --output="%j_tunnel.log"
+#SBATCH --partition=workq
+#SBATCH --job-name="tunnel"
+#SBATCH --time=12:00:00
+#SBATCH --ntasks-per-core 1
+#SBATCH --ntasks-per-node 8
+#SBATCH --nodes=1
+# find open port
+PORT=$(python -c 'import socket; s=socket.socket(); s.bind(("", 0));
+print(s.getsockname()[1]); s.close()')
+scontrol update JobId="$SLURM_JOB_ID" Comment="$PORT"
+# start sshd server on the available port
+echo "Starting sshd on port $PORT"
+/usr/sbin/sshd -D -p ${PORT} -f /dev/null -h ${HOME}/.ssh/cluster
+```
+
+*For the daily set-up*:
+1. Ssh into SOPHIA.
+  a. (Linux/macOS) Type sbatch tunnel.sh to start open an ssh tunnel.
+  b. (Windows) Request an interactive node with ```srun --partition windq,workq --
+  time 07:30:00 --nodes 1 --ntasks-per-node 8 --pty bash``` (modify as
+  needed). Keep this terminal window open throughout the day to avoid having to
+  re-authenticate. You will see your specific node name as snXYZ , copy it to
+  clipboard.
+  c. Create a bash script for b (e.g. called `interactive_node.sh` in $HOME containing ```#!/usr/bin/env bash srun --partition windq,workq --time 07:30:00 --nodes 1 --ntasks-per-node 8 --pty bash```, make it executable with ```chmod +x interactive_node.sh```) and execute it with `./interactive_node.sh` from anywhere anytime you start up.
+2. Open VSCode and connect to your projects using Remote Explorer tab (on the left
+panel in VSCode) with the ssh target:
+  a. (Linux/macOS) hpcx and follow the steps presented by VSCode.
+  b.  (Windows) Press + button type in ssh snXYZ with the node name that you got
+  previously, refresh the list of hosts, connect to the one snXYZ that you just added
+  and follow the steps presented by VSCode.
+  c. Open working folder.
+
+*Installation of mamba and PyPSA-Eur on VS Code*:
+Don't use the login node for any operations (in particular with VS Code, as it sometimes creates stray processes).
+1. Install mamba as this is the preferred option in the PyPSA documentation: Following [Mamba's read the docs](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) go the [miniforge github](https://github.com/conda-forge/miniforge?tab=readme-ov-file#install) and follow the Linux instructions: I used the wget lines. After installation you can activate mamba with ```eval "$(/home/<username>/miniforge3/bin/conda shell.bash hook)"``` in the same shell or you can add the same line to your ~/.bashrc file to start conda/mamba automatically.
+2. Install PyPSA-Eur from its Git repository in $WORK. Move the `snakemake_cluster` file from pypsa-in-sophia/SOPHIA_cluster into the pypsa-eur folder for submitting jobs to the cluster. Ensure that it is executable with `chmod u+x snakemake_cluster`. 
+3. Activate the pypsa-eur environment via `conda activate pypsa-eur`.
+4. In the pypsa-eur environment install gurobi via `mamba install -c gurobi gurobi`; the Gurobi license is a token license on Sophia. In order to access it, create a file `gurobi.lic` in the home directory with the contents `TOKENSERVER=sophia1.hpc.ait.dtu.dk` and add an environment file `GRB_LICENSE_FILE=~/gurobi.lic` to your .bashrc file (remember to source it). The token server is on the head node and we have to work on virtual interactive nodes (afaik) so the usual `TOKENSERVER=localhost` didn't work for me.
+5. Run simulations with snakemake, via `./snakemake_cluster --jobs N --configfile config/config.yaml` and possibly other options.
+6. IMPORTANT: Ensure to use temporary storage on Sophia. In the config file (whichever you are using, e.g. `config/config.default.yaml` is a good place to ensure this for all child configs) under solving set `tmpdir` to `/tmp'.
+
+##### Good to know/misc
+1. Check whether VS Code processes are running: ```watch pgrep -u "$USER" vscode-server```
+2. Killing VS Code processes:
+  a. through VS Code: Press F1 to open the command pallete, run Remote - SSH: Kill VS Code Server on Host...
+  b. through the terminal: ```pkill -u "$USER" vscode-server``` or ```killall -u "$USER" vscode-server```.
+3. Git might not be activated by default: ```module load git``` and check with ```git --version```.
 
 
