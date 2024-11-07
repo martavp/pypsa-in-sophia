@@ -88,7 +88,7 @@ Install the optimization software [Gurobi](https://www.gurobi.com) in the enviro
 
 The license is managed through a [token server](https://support.gurobi.com/hc/en-us/articles/13264425253265-How-do-I-create-a-token-server-client-license) on the head node. You need to create a file 'gurobi.lic' save it in your home directory in the cluster and write the following text in that file. 
 
-> TOKENSERVER=localhost
+> TOKENSERVER=sophia1.hpc.ait.dtu.dk
 
 #### 7. Configure SNAKEMAKE 
 
