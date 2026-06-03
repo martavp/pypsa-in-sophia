@@ -110,17 +110,31 @@ You possibly need to give execution permissions to the snakemake_cluster script.
 
 > chmod u+x snakemake_cluster
 
+#### 9. Log files
 
-#### 9. Using scratch memory for the temporary directory
+Create a directory for the cluster in the logs folder: "pypsa-eur/logs/cluster". This is where the cluster logs and error (most importantly for for solve_sector_network) will be saved.
 
-THIS STEP IS VERY IMPORTANT!! The entire SOPHIA cluster could be slowed down if you do not include this. 
+#### 10. Using scratch memory for the temporary directory
 
-When running simulations the Gurobi solver is constantly reading and writing temporary files. To avoid slowing down the entire SOPHIA cluster, it is very important that temporary storage is used. Read more about [temporary storage in SOPHIA](https://dtu-sophia.github.io/docs/scratch/).
+You need to make sure to save large temporary files in the scratch mempry. You will risk running out of memory when solving large networks if you skip this. 
 
-In the file `pypsa-eur-sec/config.yaml` (if that file doesn't exist go to `pypsa-eur-sec/config.default.yaml`) change the setting `tmpdir` under solving to '/tmp'. Make sure the setting is not commented out. It should look like this: 
+When running simulations, the Gurobi solver is constantly reading and writing temporary files, which can be very large depending on the size of your optimisation ($\sim$ 10 GB). By default, these will be saved in the local /tmp directory of the node and share resources with the solver (OS is run in-memory). To avoid running out of memory, it is very important that temporary storage dedicated for larger files is used. Read more about [temporary storage in SOPHIA](https://dtu-sophia.github.io/docs/scratch/).
 
-> solving: 
->   tmpdir: '/tmp'
+In the file `config.yaml` add the two lines below for solving options. It should look like this: 
+
+```Python
+solving:
+    model_kwargs:
+        solver_dir:"/scratch"
+ ```
+
+[Alternatively, you can indicate that scratch only be used only if the temp files are larger than a certain size by using the options below:
+```Python
+solving:
+    NodefileStart: 1  ##scratch is used for temp fils larger than 1 GB
+    NodefileDir: "/scratch"
+ ```
+]
 
 ## D. Running simulations
 
@@ -169,7 +183,7 @@ If you experience issues with connecting VScode to prime, try setting the option
 To commit from your prime repository to your GitHub, go to the *source control* and give your commit a name and press ctrl + enter. If you want the commit to be pushed automatically, after having committed, go to settings --> Remote [SSH: prime.eng.au.dk] --> Git --> Post Commit Command --> change "none" to "push"
 
 
-#### Avoid entering your password when connecting to PRIME
+#### Avoid entering your password when connecting to SOPHIA
 
 This is not secure and not officially recommended! Using SSH keys is a good idea but best to set a strong password for them. 
 
