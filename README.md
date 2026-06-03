@@ -116,7 +116,7 @@ Create a directory for the cluster in the logs folder: "pypsa-eur/logs/cluster".
 
 #### 10. Using scratch memory for the temporary directory
 
-You need to make sure to save large temporary files in the scratch mempry. You will risk running out of memory when solving large networks if you skip this. 
+You need to make sure to save large temporary files in the scratch memory. You will risk running out of memory when solving large networks if you skip this. 
 
 When running simulations, the Gurobi solver is constantly reading and writing temporary files, which can be very large depending on the size of your optimisation ($\sim$ 10 GB). By default, these will be saved in the local /tmp directory of the node and share resources with the solver (OS is run in-memory). To avoid running out of memory, it is very important that temporary storage dedicated for larger files is used. Read more about [temporary storage in SOPHIA](https://dtu-sophia.github.io/docs/scratch/).
 
@@ -128,13 +128,13 @@ solving:
         solver_dir:"/scratch"
  ```
 
-[Alternatively, you can indicate that scratch only be used only if the temp files are larger than a certain size by using the options below:
+Alternatively, you can indicate that scratch only be used only if the temp files are larger than a certain size by using the options below:
 ```Python
 solving:
     NodefileStart: 1  ##scratch is used for temp fils larger than 1 GB
     NodefileDir: "/scratch"
  ```
-]
+
 
 ## D. Running simulations
 
@@ -162,12 +162,7 @@ You can also run only parts of the simulation by specifying what rule to run
 You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
 
 
-## E. Typical Errors and options to make your life easier
-
-Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
-
-
-#### VS Code 
+#### E. Using Virtual Studio (VS) Code 
 
 VS Code must be installed on your local computer, not on the cluster.
 
@@ -175,35 +170,6 @@ VS Code must be installed on your local computer, not on the cluster.
 
 Edit 20/10/2024 by Aleks: Added a set-up for VS Code and Miniconda, including common issues with the license (on the head node, logging in etc). With VS Code, you will always work with an interactive virtual node which will change some of the above steps. See below.
 
-Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
-
-If you experience issues with connecting VScode to prime, try setting the option "Remote.SSH: Lockfiles in Tmp" to true (check the box). 
-
-To commit from your prime repository to your GitHub, go to the *source control* and give your commit a name and press ctrl + enter. If you want the commit to be pushed automatically, after having committed, go to settings --> Remote [SSH: prime.eng.au.dk] --> Git --> Post Commit Command --> change "none" to "push"
-
-
-#### Avoid entering your password when connecting to SOPHIA
-
-This is not secure and not officially recommended! Using SSH keys is a good idea but best to set a strong password for them. 
-
-On your local computer, generate an ssh key by running:
-
-> (Local path) > ssh-keygen
-
-Press _Enter_ for the default key name. Then _Enter_ for no password, and then _Enter_ again to confirm. A password key is created under *Local path* in the file _"id_rsa.pub"_. Copy the key to the cluster by running the following command:
-
-> ssh-copy-id -i ~/.ssh/id_rsa.pub prime.eng.au.dk
-
-Enter password when prompted. 
- 
-#### Extending run-time for long jobs
-
-If you need to run jobs that take a longer time to finish than the default 4 days, you can update the 'snakemake_cluster' by adding your preferred time as shown in the example below for 10 dyas:
-
-snakemake .... "sbatch ... --time=240:00:00" "$@"
-
-#### SNAKEMAKE Example
-For the ones who have just started using the PRIME cluster with only one rule in the Snakefile, but want to run in parallel with e.g. a range of different inputs, I have added a simple example of how this can be done in the folder _'cluster_test'_. You can modify the _python_script_ and the Snakefile to match it to your application. 
 
 #### Set-up for VS Code with Miniconda
 *For the first set-up*:
@@ -284,3 +250,34 @@ Don't use the login node for any operations (in particular with VS Code, as it s
 3. Git might not be activated by default: ```module load git``` and check with ```git --version```.
 
 
+## F. Typical Errors and options to make your life easier
+
+Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
+
+#### VS Code version
+Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
+
+If you experience issues with connecting VScode to prime, try setting the option "Remote.SSH: Lockfiles in Tmp" to true (check the box). 
+
+To commit from your prime repository to your GitHub, go to the *source control* and give your commit a name and press ctrl + enter. If you want the commit to be pushed automatically, after having committed, go to settings --> Remote [SSH: prime.eng.au.dk] --> Git --> Post Commit Command --> change "none" to "push"
+
+
+#### Avoid entering your password when connecting to SOPHIA
+
+This is not secure and not officially recommended! Using SSH keys is a good idea but best to set a strong password for them. 
+
+On your local computer, generate an ssh key by running:
+
+> (Local path) > ssh-keygen
+
+Press _Enter_ for the default key name. Then _Enter_ for no password, and then _Enter_ again to confirm. A password key is created under *Local path* in the file _"id_rsa.pub"_. Copy the key to the cluster by running the following command:
+
+> ssh-copy-id -i ~/.ssh/id_rsa.pub prime.eng.au.dk
+
+Enter password when prompted. 
+ 
+#### Extending run-time for long jobs
+
+If you need to run jobs that take a longer time to finish than the default 4 days, you can update the 'snakemake_cluster' by adding your preferred time as shown in the example below for 10 days:
+
+snakemake .... "sbatch ... --time=240:00:00" "$@"
