@@ -21,9 +21,9 @@ E [Typical errors](#typical-errors-and-options-to-make-your-life-easier)<br>
 
 There is a [PyPSA mailing list](https://groups.google.com/g/pypsa) where PyPSA-related problems (and solutions) are discussed. You can ask questions there if you have any troubles with the model.
 
-There is also documentation for [PyPSA](https://pypsa.readthedocs.io/en/latest/) and [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). This repository does not substitute any of the previous information and it only focuses on issues related to running PyPSA-Eur-Sec in SOPHIA.
+There is also documentation for [PyPSA](https://pypsa.readthedocs.io/en/latest/) and [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/). This repository does not substitute any of the previous information and it only focuses on issues related to running PyPSA-Eur in SOPHIA.
 
-NOTE: In order to set up anaconda, python, and PyPSA, [these instructions](https://github.com/martavp/MESM_project/blob/master/Instructions_MESM_project.pdf) and the [tutorial for the course project in the MESM course](https://github.com/martavp/MESM_project/blob/master/MESM_project.ipynb) could be useful. 
+NOTE: In order to set up anaconda, python, and PyPSA, [these instructions](https://martavp.github.io/integrated-energy-grids/intro-install.html) and the [tutorial for the course project in the Integrated Energy Grids course](https://martavp.github.io/integrated-energy-grids/Problems/IEG_course_project.html) could be useful. 
 
 This [video](https://www.youtube.com/watch?v=ty47YU1_eeQ) provides a nice introduction to PyPSA-Eur. 
 
@@ -34,7 +34,7 @@ This [video](https://www.youtube.com/watch?v=ty47YU1_eeQ) provides a nice introd
 To use the [SOPHIA cluster](https://dtu-sophia.github.io/docs/), first you need to get a user. You need to ask your supervisor to send [an email](https://dtu-sophia.github.io/docs/account/) requesting access for you.
 
 #### 2. VPN
-To connect to SOPHIA you need to be connected to the university network via the [VPN connection](https://www.inside.dtu.dk/en/medarbejder/it-og-telefoni/it-systemer-og-retningslinjer/it-vejledninger-og-retningslinjer/remote/vpn-cisco-anyconnect).
+To connect to SOPHIA you need to be connected to the university network via the [VPN connection](https://www.inside.dtu.dk/en/it-informationsteknologi/it-adgang-og-netvaerk/netvaerk-og-vpn).
 
 #### 3. Connect with ssh
  You can connect to the cluster through the terminal, e.g.
@@ -146,7 +146,7 @@ Start by making a `config.yaml` file by going into the PyPSA-Eur folder and copy
 
 The `config.yaml` file is where all settings regarding the simulation are done. Edit the settings file with a text editor. 
 
-MAKE SURE THAT YOUR `tmpdir` setting is specified as in [the previous step](#10-using-scratch-memory-for-temporary-directory).
+Make sure scratch memorry is specified as described in the previous step.
 
 When you have made your settings you are now ready to run the simulations using SNAKEMAKE. 
 All simulations must be run from the PyPSA-Eur folder. To run the full simulations type the command: 
@@ -166,7 +166,6 @@ You can take a look at the `SNAKEFILE` where all the rules are defined. For more
 
 Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
 
-This section is copypasted from [pypsa-in-prime](https://github.com/martavp/pypsa-in-prime) and not updated yet.
 
 #### VS Code 
 
