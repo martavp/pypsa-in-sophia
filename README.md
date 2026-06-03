@@ -170,7 +170,7 @@ VS Code must be installed on your local computer, not on the cluster.
 
 Edit 20/10/2024 by Aleks: Added a set-up for VS Code and Miniconda, including common issues with the license (on the head node, logging in etc). With VS Code, you will always work with an interactive virtual node which will change some of the above steps. See below.
 
-Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
+Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME or SOPHIA**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
 
 If you experience issues with connecting VScode to prime, try setting the option "Remote.SSH: Lockfiles in Tmp" to true (check the box). 
 
@@ -181,6 +181,7 @@ To commit from your prime repository to your GitHub, go to the *source control* 
 *For the first set-up*:
 1. Follow the steps as above: get a user account, possibly use a VPN and ssh into SOPHIA (ideally generate an ssh-key to avoid retyping your password; [see here](https://docs-devel.hpc.ait.dtu.dk/TweakSSH/#key-based-authentication)), generate a projects folder in "/work/users/<username>". [Avoid](https://dtu-sophia.github.io/docs/permanent/#ceph-file-system) using the $HOME directory for anything non-permanent. It makes sense to create an environmental variable $WORK via ```export WORK=/work/users/<username>``` in ~/.bashrc.
 2. Add the following to the local ssh config file:
+
 ```
 # !!! Linux/macOS
 Host hpc
@@ -192,7 +193,8 @@ Host hpcx
  ProxyCommand ssh hpc "nc \$(/usr/bin/squeue -u $USER --name=tunnel --
 states=R -h -O NodeList,Comment)"
  StrictHostKeyChecking no
- User $USER```
+ User $USER
+ ```
 
 ```
 # !!! Windows
