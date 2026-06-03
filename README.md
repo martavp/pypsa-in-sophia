@@ -252,6 +252,7 @@ panel in VSCode) with the ssh target:
   previously, refresh the list of hosts, connect to the one snXYZ that you just added
   and follow the steps presented by VSCode.
   c. Open working folder.
+3. If VSCode is having trouble connecting to the cluster, you might want to check if you have been assigned a virtual node. When the cluster is busy, this process can take some time. To check, type  `squeue -u $USER` in your terminal where you connected to the cluster. If your Status is not R for running but PD for pending you could type in `sinfo` to identify partitions on idle and change the bash script  interactive_node.sh to connect to a partition on idle. (Note:This should usually not be necessary)
 
 *Installation of mamba and PyPSA-Eur on VS Code*:
 Don't use the login node for any operations (in particular with VS Code, as it sometimes creates stray processes).
