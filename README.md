@@ -167,6 +167,27 @@ VS Code must be installed on your local computer, not on the cluster.
 
 [Visual Studio Code](https://code.visualstudio.com/) is a handy tool when working on the cluster. It allows you to have your file explorer, [python editor](https://code.visualstudio.com/docs/python/python-tutorial), and terminal in one window. Install the [Remote - SSH extension](https://code.visualstudio.com/docs/remote/ssh) to connect with SOPHIA.
 
+Edit 09/07/2026 by Marta: The most updated strategy to use the latest version of VSCode (avoid the limitation to v1.86 described below) is to use Singularity container as described in https://gitlab.windenergy.dtu.dk/ernim/singularity-vscode
+
+This allows to connect directly to a computing node. Once you have set it up, as described in the link, your daily connection routine could be as easy as:
+
+1. Connect to sophia login node
+
+```Python
+ssh user@sophia.dtu.dk
+ ```
+
+2. Ask for a computing node to be allocated to your user
+```Python
+sbatch --partition=workq ~/vscode-tunnel.sh 
+```
+
+3. In VSCode panel,  "Connect to host" and select "sophia-vscode"
+
+
+#### F. Using Virtual Studio (VS) Code (outdated options)
+For legacy reasons, you can find below the former setup described by Aleks and Ebbe. 
+
 Edit 20/10/2024 by Aleks: Added a set-up for VS Code and Miniconda, including common issues with the license (on the head node, logging in etc). With VS Code, you will always work with an interactive virtual node which will change some of the above steps. See below.
 
 Edit 2/2/2024 by Ebbe: The newest release (v1.86) is only compatible with Linux distributions based on glibc 2.28 or later, and glibcxx 3.4.25 or later, such as Debian 10, RHEL 8, or Ubuntu 20.04. **Currently, this is not fulfilled by PRIME or SOPHIA**. I.e., in order to connect to PRIME with SSH, downgrade VS Code version to [v1.85](https://code.visualstudio.com/updates/v1_85). Moreover, to avoid automatic updates of VS Code, set Update Mode to "none" (under File/Preferences/settings/).
