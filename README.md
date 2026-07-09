@@ -46,7 +46,7 @@ The main way of interacting with the cluster will be through a terminal where yo
 Some useful commands to use in the cluster are described in the [Sophia documentation](https://dtu-sophia.github.io/docs/scheduler/).
 
 #### 5. Moving files to/from the cluster
-If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux.
+If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux, or directly VSCode.
 
 
 ## C. Setting up the cluster
@@ -54,9 +54,10 @@ If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be u
 **The following commands must be run on the cluster.**
 
 
-#### 1. Installing mamba
-Install [mamba](https://mamba.readthedocs.io/en/latest/) in your home directory at the cluster. 
-Mamba is a lighter version of [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) which works fine (see below in connection with VS Code).
+#### 1. Installing pixi
+Install [pixi](https://pixi.prefix.dev/latest/) to manage your python packages.
+
+Alternative package managers such us [mamba](https://mamba.readthedocs.io/en/latest/) or [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) can also be used.
 
 #### 2 Installing PyPSA-Eur
 Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. I would make it in the home directory and call it `projects`
@@ -70,11 +71,9 @@ Now go into that folder with
 Follow the instruction given [here](https://pypsa-eur.readthedocs.io/en/latest/installation.html) carefully. Installation may take a while. 
 
 #### 3. Installing the anaconda environment
-You will need to have an conda environment with all the necessary packages. You should have created one when installing [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). 
+You will need to activate the environement as described in [PyPSA-Eur](https://pypsa-eur.readthedocs.io/en/latest/installation.html). 
 
-Activate the environment by typing
-
-> .../pypsa-eur$ conda activate pypsa-eur
+> .../pypsa-eur$ pixi shell
 
 Every time you log in to the cluster you must activate the environment again. The active environment will be shown in parenthesis in your terminal. 
 
