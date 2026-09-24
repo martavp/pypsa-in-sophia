@@ -1,0 +1,19 @@
+#!/bin/bash
+# Submit solve rules to SOPHIA's fat-node partition (windfatq).
+#
+# Why a separate script: solving is resource-heavy and running it through the same
+# generic snakemake_cluster script as prep/build rules risks piling too many solve
+# jobs onto one node, causing conflicts or OOM kills. This script pins solves to
+# fatq with --exclusive=user, so each job gets a full node's memory to itself.
+#
+# Use this over snakemake_solve_thin when your run needs more memory per node than
+# thin partitions offer, or when windfatq is comparatively idle (check `sinfo` or the
+# Ganglia dashboard, README section B.4, before deciding).
+#
+# Usage:
+#   ./snakemake_solve_fat <target-rule-or-all> -j <parallel-jobs> --configfile <path> [--keep-going] [-n]
+#   Always dry-run first with -n before submitting for real.
+
+snakemake --rerun-incomplete --latency-wait 100 \
+  --executor cluster-generic \
+  --cluster-generic-submit-cmd "sbatch --parsable -p windfatq -n 1 --exclusive=user --output=slurm_logs/slurm-%j.out --time=12:00:00 --cpus-per-task=16" "$@"

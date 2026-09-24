@@ -1,0 +1,18 @@
+#!/bin/bash
+# Submit solve rules to SOPHIA's regular partitions (workq, windq).
+#
+# Why a separate script: see snakemake_solve_fat. This variant spreads solves
+# across more, smaller nodes (--exclusive rather than --exclusive=user, higher
+# --cpus-per-task) instead of concentrating them on fat nodes.
+#
+# Use this over snakemake_solve_fat when your run doesn't need fat-node memory,
+# or when workq/windq are less busy than windfatq (check `sinfo` or the Ganglia
+# dashboard, README section B.4, before deciding).
+#
+# Usage:
+#   ./snakemake_solve_thin <target-rule-or-all> -j <parallel-jobs> --configfile <path> [--keep-going] [-n]
+#   Always dry-run first with -n before submitting for real.
+
+snakemake --rerun-incomplete --latency-wait 100 \
+  --executor cluster-generic \
+  --cluster-generic-submit-cmd "sbatch --parsable -p workq,windq -n 1 --exclusive --output=slurm_logs/slurm-%j.out --time=12:00:00 --cpus-per-task=32" "$@"

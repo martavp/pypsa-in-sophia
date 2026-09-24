@@ -6,12 +6,14 @@ Its main purpose is to help MSc and PhD students install the packages and run si
 
 If you encounter a problem (and hopefully also a solution), please, pull request changes to this README file with the solution so that other students can also benefit.
 
-The content of this document is structured as follows:<br>
-A [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  <br>
-B [Getting on to the cluster](#getting-on-to-the-cluster)  <br>
-C [Setting up the cluster](#setting-up-the-cluster)  <br>
-D [Running simulations](#running-simulations)<br>
-E [Typical errors](#typical-errors-and-options-to-make-your-life-easier)<br>
+The content of this document is structured as follows:  
+A [General information about PyPSA-Eur](#general-information-about-pypsa-eur)  
+B [Getting on to the cluster](#getting-on-to-the-cluster)  
+C [Setting up the cluster](#setting-up-the-cluster)  
+D [Running simulations](#running-simulations)  
+E [Using Virtual Studio (VS) Code](#e-using-virtual-studio-vs-code)  
+F [Running multi-weather-year / stress-test scenarios](#f-running-multi-weather-year--stress-test-scenarios)  
+G [Typical errors and options to make your life easier](#g-typical-errors-and-options-to-make-your-life-easier)
 
 ## A. General information about PyPSA-Eur
 
@@ -30,6 +32,12 @@ This [video](https://www.youtube.com/watch?v=ty47YU1_eeQ) provides a nice introd
 
 ## B. Getting on to the cluster
 
+> **Golden rules — read this before anything else:**
+>
+> 1. **Never run anything on the login node** beyond submitting jobs or trivial disk operations (`ls`, `sinfo`, `squeue`). Submitting a snakemake job from the login node is fine as long as the job itself doesn't execute there. Check which node you're on with `echo $HOSTNAME` — if it doesn't start with `sn*`, you are on the login node.
+> 2. **Use tmux** for anything long-running or interactive: submitting snakemake jobs, holding an interactive-node allocation, tunnelling VS Code. tmux keeps your session alive if your connection drops. [Check the cheatsheet](https://tmuxcheatsheet.com/)
+> 3. **Don't use `$HOME` for large or non-permanent files.** Use `/work/users/<username>` instead (see step C.2 below). It's convenient to `export WORK=/work/users/<username>` in your `~/.bashrc`.
+
 #### 1. Get access to SOPHIA
 To use the [SOPHIA cluster](https://dtu-sophia.github.io/docs/), first you need to get a user. You need to ask your supervisor to send [an email](https://dtu-sophia.github.io/docs/account/) requesting access for you.
 
@@ -45,6 +53,8 @@ The main way of interacting with the cluster will be through a terminal where yo
 #### 4. Useful commands
 Some useful commands to use in the cluster are described in the [Sophia documentation](https://dtu-sophia.github.io/docs/scheduler/).
 
+You can also monitor cluster/node load [here](http://10.40.84.120/ganglia/?c=OpenHPC&m=load_one&r=hour&s=by%20name&hc=4&mc=2). This can be useful when deciding which partition to target with `salloc`/`sbatch` (see the interactive-node workflow in section E).
+
 #### 5. Moving files to/from the cluster
 If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be useful to copy folders to/from the cluster. Alternatively, use FileZilla on Windows, OSX or Linux, or directly VSCode.
 
@@ -57,10 +67,10 @@ If you are using Windows, [WinSCP](https://winscp.net/eng/download.php) can be u
 #### 1. Installing pixi
 Install [pixi](https://pixi.prefix.dev/latest/) to manage your python packages.
 
-Alternative package managers such us [mamba](https://mamba.readthedocs.io/en/latest/) or [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) can also be used.
+Alternative package managers such us [mamba](https://mamba.readthedocs.io/en/latest/) or [anaconda/miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) can also be used. See the legacy VS Code + Miniconda setup in section E; use pixi if starting fresh.
 
 #### 2 Installing PyPSA-Eur
-Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. I would make it in the home directory and call it `projects`
+Start by making a folder where you want to install PyPSA-Eur and all that is needed to run it. Use your `$WORK` directory (`/work/users/<username>`, see the golden rules in section B), not `$HOME` — PyPSA-Eur outputs and cutouts (which we have saved in `groups/EXTREMES/`) get large. Call it `projects`:
 
 > mkdir projects
 
@@ -80,7 +90,9 @@ Every time you log in to the cluster you must activate the environment again. Th
 > (pypsa-eur) [user@sophia1 ~]$
 
 #### 4. Install gurobi 
-Install the optimization software [Gurobi](https://www.gurobi.com) in the environment by running the command
+If using pixi rather than conda, install gurobi through pixi's package management instead.
+
+Otherwise, install the optimization software [Gurobi](https://www.gurobi.com) in the environment by running the command
 > conda install -c gurobi gurobi
 
 ### 5. Setting up the gurobi license
@@ -88,6 +100,14 @@ Install the optimization software [Gurobi](https://www.gurobi.com) in the enviro
 The license is managed through a [token server](https://support.gurobi.com/hc/en-us/articles/13264425253265-How-do-I-create-a-token-server-client-license) on the head node. You need to create a file 'gurobi.lic' save it in your home directory in the cluster and write the following text in that file. 
 
 > TOKENSERVER=sophia1.hpc.ait.dtu.dk
+
+You also need to point Gurobi at this file. Add the following line to your `~/.bashrc` and re-source it (`source ~/.bashrc`):
+
+```
+GRB_LICENSE_FILE=~/gurobi.lic
+```
+
+Note: the token server runs on the head/login node, but you will be working from interactive/compute nodes — `TOKENSERVER=localhost` will not work there; use `sophia1.hpc.ait.dtu.dk` as above.
 
 #### 7. Configure SNAKEMAKE 
 
@@ -160,8 +180,10 @@ You can also run only parts of the simulation by specifying what rule to run
 
 You can take a look at the `SNAKEFILE` where all the rules are defined. For more information about how SNAKEMAKE works take a look at the [documentation](https://snakemake.readthedocs.io/en/stable/).
 
+Edit by Aleks: I suggest using different scripts depending on the task, to distinguish preparing networks from solving them — this avoids job conflicts/kills and lets you pick partitions to guarantee resources. Use `snakemake_cluster` as usual for `prepare_sector_networks` and other non-solve rules. For solving, use `snakemake_solve_fat` or `snakemake_solve_thin` instead (new scripts in `/SOPHIA_cluster`, copy and `chmod u+x` them like `snakemake_cluster`, step C.7) — pick whichever fits your job size and current partition load (check `sinfo` or Ganglia, section B.4).
 
-#### E. Using Virtual Studio (VS) Code 
+
+## E. Using Virtual Studio (VS) Code 
 
 VS Code must be installed on your local computer, not on the cluster.
 
@@ -184,8 +206,25 @@ sbatch --partition=workq ~/vscode-tunnel.sh
 
 3. In VSCode panel,  "Connect to host" and select "sophia-vscode"
 
+### Alternative: manual `salloc`
 
-#### F. Using Virtual Studio (VS) Code (outdated options)
+If you'd rather allocate a node by hand (e.g. to control walltime or exclusivity directly), the following also works. Run it inside a tmux session (see golden rules in section B) since `salloc` connections are more prone to dropping. Check `sinfo` or the Ganglia link (section B.4) first to see which partitions are idle:
+
+```
+tmux new -t tunnel
+sinfo                                                      # check which partitions have idle nodes
+salloc -n 1 -N 1 --time=600 --exclusive=user -p workq, windq      # allocates ~7.5h; adjust --time and -p as needed
+# once allocated, note the node name it gives you, e.g. sn402
+ssh sn402
+./code tunnel                                              # or your usual tunnel/ssh method into the node
+```
+
+Then connect VS Code to that node as in the steps above.
+
+
+### Legacy setup (outdated)
+**New students should use the main workflow above (Singularity/tunnel, or the `salloc` alternative) instead of what follows.** This subsection is kept for reference — e.g. if you inherit a project already using Miniconda/mamba, or need the git commit/push settings below, which aren't covered elsewhere.
+
 For legacy reasons, you can find below the former setup described by Aleks and Ebbe. 
 
 Edit 20/10/2024 by Aleks: Added a set-up for VS Code and Miniconda, including common issues with the license (on the head node, logging in etc). With VS Code, you will always work with an interactive virtual node which will change some of the above steps. See below.
@@ -280,8 +319,57 @@ Don't use the login node for any operations (in particular with VS Code, as it s
   b. through the terminal: ```pkill -u "$USER" vscode-server``` or ```killall -u "$USER" vscode-server```.
 3. Git might not be activated by default: ```module load git``` and check with ```git --version```.
 
+## F. Running multi-weather-year / stress-test scenarios
 
-## F. Typical Errors and options to make your life easier
+PyPSA-Eur supports running many weather years as separate scenarios (e.g. for stress analysis). This requires several non-default config changes and a specific cutout layout. This section assumes you've already completed the standard setup in C and D.
+
+**Reference implementation:** this workflow has been developed and tested on [aleks-g/pypsa-eur, branch `sector-droughts`](https://github.com/aleks-g/pypsa-eur/tree/sector-droughts) — it may lag behind the newest upstream PyPSA-Eur commits, but is known to work for this purpose. Fix a specific version/commit rather than tracking `main`.
+
+### 1. Config changes
+
+Start from a copy of `config.default.yaml` (e.g. following [`sector_droughts.yaml`](https://github.com/aleks-g/pypsa-eur/blob/sector-droughts/config/sector_droughts.yaml) as a template, always diffing against the current `config.default.yaml`). Key switches:
+
+| Setting | Value | Notes |
+|---|---|---|
+| `scenarios` | `true` | must point to a scenario file (see step 2) |
+| `shared_cutouts` | `false` | the only setting known to work with per-scenario cutouts |
+| `enable` | build/retrieve cutouts off, drop leap day | cutouts are supplied manually (step 3) |
+| `atlite: cutout_directory` and `default-cutout` | set per your layout | also set per-scenario |
+| `electricity: load: manual_adjustment`, `supplement_synthetic` | `true` | |
+| `clustering: mode` | `custom_busmap` | requires a busmap file — generate by running one scenario, save the resulting busmap, and move it to the path the snakefile expects |
+| `clustering: temporal: resolution_elec` / `resolution_sector` | as needed | can also be set per-scenario |
+| `mem_mb`, `runtime` | check/adjust | multi-year runs are larger than default |
+
+`snapshots` is set within the scenario file (step 2), not the top-level config.
+
+### 2. Generate the scenario file
+
+Use [`create_weather_year_scenarios.py`](https://github.com/aleks-g/pypsa-eur/blob/sector-droughts/config/create_weather_year_scenarios.py), which wraps PyPSA-Eur's `create_scenarios.py` and formats output for Sophia. It produces a file like [`weather_scenarios_cutouts.yaml`](https://github.com/aleks-g/pypsa-eur/blob/stressed-system/config/weather_scenarios_cutouts.yaml) or [`design_stress_years.yaml`](https://github.com/aleks-g/pypsa-eur/blob/sector-droughts/config/design_stress_years.yaml).
+
+### 3. Link the cutouts
+
+Weather-year cutouts live in `/groups/EXTREMES/cutouts/` (e.g. `europe-1941-1946-era5.nc`; multiple versions may exist — check before assuming). Rather than copying, symlink them per scenario. From your `pypsa-eur` directory:
+
+```bash
+for y in {1941..2023}; do
+  mkdir -p cutouts/{config_name}/weather_year_$y
+  for f in /groups/EXTREMES/cutouts/europe-*-*-era5.nc; do
+    ln -sfn "$f" cutouts/{config_name}/weather_year_$y/
+  done
+done
+```
+
+Replace `{config_name}` with your config's name; adjust the year range to what your scenario file covers.
+
+### 4. Modified scripts
+
+Some scripts need adaptation beyond config changes — notably for non-calendar-year runs (e.g. summer-to-summer rather than Jan–Dec). See the adapted scripts on the reference branch, including `build_electricity_demand.py`, `solve_network.py`, and `build_hydro_profile.py`. If you hit errors not covered here, check whether the relevant script has a modified version on that branch first.
+
+### 5. Run as usual
+
+Follow section D's prep/solve pattern, pointing `--configfile` at your scenario config.
+
+## G. Typical Errors and options to make your life easier
 
 Here are some solutions to errors that you may encounter when working with PyPSA-Eur on SOPHIA.
 
